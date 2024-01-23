@@ -1,5 +1,5 @@
 import streamlit as st
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 class Term :
 	def __init__ (self, preferred, carry, catch_up, fee):
