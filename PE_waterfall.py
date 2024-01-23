@@ -1,67 +1,99 @@
 import streamlit as st
-# import pandas as pd
-# import numpy as np
+import matplotlib.pyplot as plt
 
+class Term :
+	def __init__ (self, preferred, carry, catch_up, fee):
+		self.preferred = preferred
+		self.carry	= carry
+		self.catch_up = catch_up
+		self.fee = fee
 
-st.title ("Test Streamlit and Pandas :smile:")
+# this function return a dictionary. Heads: proceeds, GP, LP
+# fee is outside the cost, commitment size is equal to cost.
+def waterFall (Term, cost, proceeds, duration):
+	
+	fee 		= (Term.fee/100) * cost  # in dollar
+	catch_up 	= Term.catch_up/100  # in %
+	carry 		= Term.carry/100
+	preferred 	= Term.preferred/100
 
-# @st.cache_data
-# def rand_data():
-# 	df =pd.DataFrame (
-# 		{
-# 			"apples" :np.random.randint(10, 50, size=8),
-# 			"bears" :np.random.randint(100, 500, size=8),
-# 			"bananas" :np.random.randint(10, 50, size=8),
-# 		})
-# 	return df
+	LpGpRatio = (1-carry)/carry
+	gain = proceeds - cost
 
-# table_data = rand_data()
+	lp_share = 0   # $0 at the beginning. 
+	gp_share = fee * duration
+	lp_pref =0
 
-# hundle_rate= st.text_input ("enter hundle rate")
+	if proceeds <= cost:   #  if proceeds <= (cost + fee)  option_2:  LP recover fee as well. 
+		lp_share = proceeds 
+	else :
+		lp_share = cost 
+		lp_pref = cost * (1+preferred)**duration - cost  
 
-# if hundle_rate:
-# 	new_rate =int(hundle_rate)*3
-# 	st.write (new_rate)
+		if gain <=lp_pref :
+			lp_share = proceeds
+		else :
+			lp_share += lp_pref
+			if catch_up ==0 : #  0% catch_up
+				gp_carry = (gain - lp_pref) *carry  # GP carry
+				lp_carry = (gain - lp_pref)*(1-carry)
+				lp_share +=lp_carry
+				gp_share +=gp_carry
+			else:
+				dis_catchup = lp_pref/(LpGpRatio*catch_up+catch_up-1)
+				print ('\ndis_catchup', dis_catchup)
+				if dis_catchup <= (gain- lp_pref) :
+					gp_catch = dis_catchup * catch_up
+					lp_catch = dis_catchup *(1-catch_up)
+					lp_share +=lp_catch
+					gp_share +=gp_catch
+					gp_carry = (gain - lp_pref -dis_catchup) *carry  # GP carry
+					lp_carry = (gain - lp_pref -dis_catchup)*(1-carry)
+					lp_share +=lp_carry
+					gp_share +=gp_carry
+					print ('enough catchup, lp, gp', lp_catch, gp_catch )
+				else :
+					gp_catch = (gain- lp_pref) * catch_up
+					lp_catch = (gain- lp_pref) *(1-catch_up)
+					lp_share +=lp_catch
+					gp_share +=gp_catch
+					print ('not enough catch up, lp, gp', lp_catch, gp_catch )
 
+	# return gain, catch_up, carry, preferred, LpGpRatio, lp_share, gp_share
+	return gain, lp_pref, lp_share, gp_share
+
+st.subheader ("PE Water Fall :wave:")
 
 with st.form ("Fund Terms") :
-	st.header ("Please enter fund terms")
+	st.subheader ("Please enter fund terms")
 
 	a, b, c = st.columns ([1,1,1])
-
 	with a:
-		# preffered = st.slider ("preffered return in %:", 0, 20)
-		preffered = st.selectbox ("preffered return in %:", [0,5,8,9,10])
-
+		preferred = st.selectbox ("preferred return in %:", [0,5,8,9,10])
+		invested = st.text_input("invested amount $")
 	with b:
 		carry = st.selectbox ("carried interest in %:", [0,5,10,15,20])
-
+		total_re = st.text_input("total cash return amount $")
 	with c:
-		catch_up = st.selectbox ("catch up in %:", [0,100])
+		catch_up = st.selectbox ("catch up in %:", [0,80,100])
+		management_fee = st.selectbox ("management fee %:", [0,1,2,3,5])
 
-	invested = st.text_input("invested amount $")
-	total_re = st.text_input("total cash return amount $")
-
+	duration = st.slider ("how many years:", 1,10)
 	submitted = st.form_submit_button("calculate !")
 
 if submitted:
-	gain = int(total_re) - int(invested)
-	lp_1 = int(invested) * preffered /100  # prefferred return
-	
-	#  0% catch_up
-	if catch_up ==0 :
-		gp_share = (gain - lp_1) *carry/100  # GP carry
-		lp_2 = (gain - lp_1)*(100-carry)/100
+	lp_cost = int(invested)
+	total_return = int(total_re)
 
-	if catch_up == 100:
-		gp_catch = lp_1 * carry /100
-		gp_share = (gain - lp_1- gp_catch ) *carry/100  + gp_catch# GP carry
-		lp_2 = (gain - lp_1- gp_catch)*(100-carry)/100
+	fund_term = Term(preferred, carry, catch_up, management_fee)
+	profit, preferred, lp_share, gp_share = waterFall(fund_term, lp_cost, total_return, duration)
 
+	st.write ("Investment Gain ($):", round (profit))
+	st.write ("Preferred ($):", round (preferred,1))
+	st.write ("LP share ($):", round (lp_share,1))
+	st.write ("GP share ($):", round (gp_share,1))
 
-	st.write ("LP share:", lp_1+lp_2+ int(invested))
-	st.write ("GP share:", gp_share)
-
-# st.experimental_data_editor(table_data)
-# st.line_chart(table_data)
-# st.bar_chart(table_data)
+	# lp_fig, gp_fig = 0 , 0
+	# for i in range (0,2100,100):
+	# 	aaa, bbb, lp_fig, gp_fig = waterFall(fund_term, lp_cost, i, duration)
+	# 	st.write (i, lp_fig, gp_fig)
