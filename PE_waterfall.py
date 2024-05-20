@@ -69,13 +69,13 @@ with st.form ("Fund Terms") :
 
 	a, b, c = st.columns ([1,1,1])
 	with a:
-		preferred = st.selectbox ("preferred return in %:", [0,5,8,9,10])
-		invested = st.text_input("invested amount $")
+		preferred = st.selectbox ("preferred return in %:", [0,5,8,10,15], index= 4)
+		invested = st.text_input("invested amount $", 1000)
 	with b:
-		carry = st.selectbox ("carried interest in %:", [0,5,10,15,20])
-		total_re = st.text_input("total cash return amount $")
+		carry = st.selectbox ("carried interest in %:", [0,5,10,15,20,25], index = 4)
+		total_re = st.text_input("total cash return amount $", 1500)
 	with c:
-		catch_up = st.selectbox ("catch up in %:", [0,80,100])
+		catch_up = st.selectbox ("catch up in %:", [0,80,100], index = 1)
 		management_fee = st.selectbox ("management fee %:", [0,1,2,3,5])
 
 	duration = st.slider ("how many years:", 1,10)
