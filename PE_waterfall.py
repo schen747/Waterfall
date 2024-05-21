@@ -41,7 +41,7 @@ def waterFall (Term, cost, proceeds, duration):
 				gp_share +=gp_carry
 			else:
 				dis_catchup = lp_pref/(LpGpRatio*catch_up+catch_up-1)
-				print ('\ndis_catchup', dis_catchup)
+				# print ('\ndis_catchup', dis_catchup)
 				if dis_catchup <= (gain- lp_pref) :
 					gp_catch = dis_catchup * catch_up
 					lp_catch = dis_catchup *(1-catch_up)
@@ -51,13 +51,13 @@ def waterFall (Term, cost, proceeds, duration):
 					lp_carry = (gain - lp_pref -dis_catchup)*(1-carry)
 					lp_share +=lp_carry
 					gp_share +=gp_carry
-					print ('enough catchup, lp, gp', lp_catch, gp_catch )
+					# print ('enough catchup, lp, gp', lp_catch, gp_catch )
 				else :
 					gp_catch = (gain- lp_pref) * catch_up
 					lp_catch = (gain- lp_pref) *(1-catch_up)
 					lp_share +=lp_catch
 					gp_share +=gp_catch
-					print ('not enough catch up, lp, gp', lp_catch, gp_catch )
+					# print ('not enough catch up, lp, gp', lp_catch, gp_catch )
 
 	# return gain, catch_up, carry, preferred, LpGpRatio, lp_share, gp_share
 	return gain, lp_pref, lp_share, gp_share
