@@ -1,5 +1,5 @@
 import streamlit as st
-# import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
 class Term :
 	def __init__ (self, preferred, carry, catch_up, fee):
@@ -62,24 +62,24 @@ def waterFall (Term, cost, proceeds, duration):
 	# return gain, catch_up, carry, preferred, LpGpRatio, lp_share, gp_share
 	return gain, lp_pref, lp_share, gp_share
 
-st.subheader ("PE Water Fall :wave:")
+st.subheader ("PE Distribution Water Fall :wave:")
 
 with st.form ("Fund Terms") :
-	st.subheader ("Please enter fund terms")
+	st.subheader ("Please enter fund terms. Assume all LP capital invested in day one.")
 
 	a, b, c = st.columns ([1,1,1])
 	with a:
-		preferred = st.selectbox ("preferred return in %:", [0,5,8,10,15], index= 4)
-		invested = st.text_input("invested amount $", 1000)
+		preferred = st.selectbox ("Preferred return %:", [0,5,8,10,15], index= 3)
+		invested = st.text_input("LP invested $", 1000)
 	with b:
-		carry = st.selectbox ("carried interest in %:", [0,5,10,15,20,25], index = 4)
-		total_re = st.text_input("total cash return amount $", 1500)
+		carry = st.selectbox ("Carried interest %:", [0,5,10,15,20,30,50], index = 3)
+		total_re = st.text_input("Expected total cash return $", 1500)
 	with c:
-		catch_up = st.selectbox ("catch up in %:", [0,80,100], index = 1)
+		catch_up = st.selectbox ("GP catch up %:", [0,50,80,100], index = 1)
 		management_fee = st.selectbox ("management fee %:", [0,1,2,3,5])
 
-	duration = st.slider ("how many years:", 1,10)
-	submitted = st.form_submit_button("calculate !")
+	duration = st.slider ("How many years:", 1,10)
+	submitted = st.form_submit_button("Calculate !")
 
 if submitted:
 	lp_cost = int(invested)
@@ -88,12 +88,34 @@ if submitted:
 	fund_term = Term(preferred, carry, catch_up, management_fee)
 	profit, preferred, lp_share, gp_share = waterFall(fund_term, lp_cost, total_return, duration)
 
-	st.write ("Investment Gain ($):", round (profit))
-	st.write ("Preferred ($):", round (preferred,1))
-	st.write ("LP share ($):", round (lp_share,1))
-	st.write ("GP share ($):", round (gp_share,1))
+	# st.write ("Investment Gain ($):", round (profit))
+	# st.write ("Preferred ($):", round (preferred,1))
+	# st.write ("LP share ($):", round (lp_share,1))
+	# st.write ("GP share ($):", round (gp_share,1))
 
-	# lp_fig, gp_fig = 0 , 0
-	# for i in range (0,2100,100):
-	# 	aaa, bbb, lp_fig, gp_fig = waterFall(fund_term, lp_cost, i, duration)
-	# 	st.write (i, lp_fig, gp_fig)
+	wString_1 = f"<h4>Investment Gain: ${profit: .2f} &nbsp;&nbsp;&nbsp; Preferred Return: ${preferred:.2f}</h4>"
+	wString_2 = f"<h4>LP Portion: ${lp_share: .2f} &nbsp;&nbsp;&nbsp; GP Portion: ${gp_share:.2f}</h4>"
+	st.markdown (wString_1, unsafe_allow_html=True)
+	st.markdown (wString_2, unsafe_allow_html=True)
+
+	total_return_list =[]
+	lp_list =[]
+	gp_list =[]
+
+	step= (total_return-lp_cost)/20
+
+	lp_fig, gp_fig = 0 , 0
+	for i in range (int(lp_cost*0.3),   int(total_return*1.5), int(step)):
+		aaa, bbb, lp_fig, gp_fig = waterFall(fund_term, lp_cost, i, duration)
+		# st.write (i, lp_fig, gp_fig)
+		total_return_list.append (i)
+		lp_gain = lp_fig - lp_cost
+		lp_list.append(lp_gain)
+		gp_list.append (gp_fig)
+
+	fig_3 = go.Figure()
+	fig_3.add_trace (go.Scatter (x=total_return_list, y=lp_list, mode='lines', name = "LP Portion"))
+	fig_3.add_trace (go.Scatter (x=total_return_list, y=gp_list, mode='lines', name = "GP Portion"))
+	st.plotly_chart(fig_3)
+
+
