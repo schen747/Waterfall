@@ -78,7 +78,7 @@ with st.form ("Fund Terms") :
 		catch_up = st.selectbox ("GP catch up %:", [0,50,80,100], index = 1)
 		management_fee = st.selectbox ("management fee %:", [0,1,2,3,5])
 
-	duration = st.slider ("How many years:", 1,10)
+	duration = st.slider ("How many years:", 1,10, 4)
 	submitted = st.form_submit_button("Calculate !")
 
 if submitted:
